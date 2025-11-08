@@ -3,6 +3,52 @@ import numpy as np
 import heapq
 
 
+def fix_duplicates(arr):
+    """Fix duplicates in a 2D array by replacing them with missing numbers."""
+    # Flatten the array
+    flat = [x for row in arr for x in row]
+    all_vals = set(flat)
+
+    # We assume numbers should be from 1..N (based on array size)
+    expected = set(range(1, len(flat) + 1))
+
+    missing = list(expected - all_vals)
+    seen = set()
+    i_missing = 0
+
+    # Replace duplicates with missing numbers
+    for i in range(len(arr)):
+        for j in range(len(arr[i])):
+            if arr[i][j] in seen:
+                arr[i][j] = missing[i_missing]
+                i_missing += 1
+            seen.add(arr[i][j])
+
+    return arr
+
+
+
+
+def crossover2(arr1, arr2):
+    mid = len(arr1) // 2
+    top_half = arr1[:mid]
+
+    
+
+    bottom_half2 = arr2[mid:]
+    temp = top_half.copy()
+    top_half = bottom_half2
+
+    bottom_half2 = temp
+    
+
+   # print(fix_duplicates(arr1))
+   
+
+    #print(fix_duplicates(arr2))
+
+
+
 # 1. create initial population
 # 2. create fitness function
 # 3. SELECTION 4. CROSSOVER, 5. MUTATION
@@ -257,7 +303,7 @@ def main():
         
         random.shuffle(top_individuals)
         for i in range(0, len(top_individuals) - 1, 2):
-            crossover(top_individuals[i].matrix, top_individuals[i+1].matrix, swap_turn)
+            crossover2(top_individuals[i].matrix, top_individuals[i+1].matrix)
             swap_turn += 1
             
             
@@ -306,8 +352,8 @@ def main():
                 cost = calculate_cost(arr)
                 population.append(genetic_ordering(arr, cost))
    
-    print(population[count].matrix)
-    print(population[count + 1])
+    #print(population[count].matrix)
+    #print(population[count + 1])
     '''
     new_population = {}
     index = 0
