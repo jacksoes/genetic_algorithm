@@ -68,13 +68,13 @@ def crossover(arr1, arr2):
     child = [row[:] for row in arr1]  # start with a copy of arr1
 
     # crossover rows
-    if random.random() < 0.9:
+    if random.random() < 0.75:
         mid = random.randint(1, rows - 1)
         child[:mid] = arr1[:mid]
         child[mid:] = arr2[mid:]
 
     # crossover columns
-    if random.random() > 0.1:
+    if random.random() > 0.25:
         mid = random.randint(1, cols - 1)
         child = [r1[:mid] + r2[mid:] for r1, r2 in zip(child, arr2)]
 
@@ -83,8 +83,8 @@ def crossover(arr1, arr2):
 
 
 def mutate(arr, bias):
-
     
+        
     rows = len(arr)
     cols = len(arr[0])
 
@@ -99,15 +99,42 @@ def mutate(arr, bias):
     
     rand = random.random()
     
-
-    if(bias > rand):
-        if val1 > val2 and (r1 < r2 or (r1 == r2 and c1 < c2)):
-            arr[r1][c1], arr[r2][c2] = arr[r2][c2], arr[r1][c1]
-    else:
-        arr[r1][c1], arr[r2][c2] = arr[r2][c2], arr[r1][c1]
     
-    return arr
+    
+    #return arr
+    
+    
+    #rows = len(arr)
+    #cols = len(arr[0])
+
+    # pick a random cell
+    r, c = random.randint(0, rows - 1), random.randint(0, cols - 1)
+
+    # possible adjacent positions
+    neighbors = []
+    if r > 0: neighbors.append((r - 1, c))      # up
+    if r < rows - 1: neighbors.append((r + 1, c))  # down
+    if c > 0: neighbors.append((r, c - 1))      # left
+    if c < cols - 1: neighbors.append((r, c + 1))  # right
+
+    # pick a random adjacent neighbor
+    r2, c2 = random.choice(neighbors)
+
+    # bias still controls whether swap happens
+    if random.random() < bias:
+        arr[r][c], arr[r2][c2] = arr[r2][c2], arr[r][c]
         
+    '''
+    if (rand > .6):
+        #if(bias > rand):
+        if(True):
+            if val1 > val2 and (r1 < r2 or (r1 == r2 and c1 < c2)):
+                arr[r1][c1], arr[r2][c2] = arr[r2][c2], arr[r1][c1]
+        else:
+            arr[r1][c1], arr[r2][c2] = arr[r2][c2], arr[r1][c1]
+    '''
+    return arr
+
   
 
 def create_random_2d_array(rows, cols):
@@ -151,8 +178,9 @@ def main():
     m = int(input("m = "))
 
     initial_population = [] #total = [create_random_2d_array(37, 35) for _ in range(100)]
-
-    for i in range(200):
+    population_total = 500
+    
+    for i in range(population_total):
         matrix = create_random_2d_array(n, m)
         initial_population.append(Genome(matrix))
 
@@ -165,7 +193,7 @@ def main():
 
     while True:
         #selection
-        selection_amount = 20
+        selection_amount = population_total // 10
         selected_parents = weighted_selection(initial_population, selection_amount)
 
 
@@ -178,20 +206,35 @@ def main():
 
             mutated_matrix = [row[:] for row in child.matrix]
             for i in range(20):
-                 mutated_matrix = mutate(mutated_matrix, bias=.75)
+                 mutated_matrix = mutate(mutated_matrix, bias=.5)
             child.update_matrix(mutated_matrix)
 
             new_generation.append(child)
 
-
+    
+        # oldcode ----
+        #initial_population = initial_population + new_generation                 
+        #initial_population.sort(key=lambda g: g.cost)
             
-        initial_population.sort(key=lambda g: g.cost)
-            
 
-        top_50 = initial_population[:50]
-
-        initial_population = (new_generation + top_50 + initial_population)[:500]
+        #initial_population = initial_population[:population_total]
         
+        # --- Elite preservation ---
+        elite_count = int(0.05 * population_total)  # top 5% stay unchanged
+        initial_population.sort(key=lambda g: g.cost)
+        elites = initial_population[:elite_count]
+
+        # --- Combine elites with new generation ---
+        initial_population = elites + new_generation
+
+        # --- Sort again and trim to population size ---
+        initial_population.sort(key=lambda g: g.cost)
+        initial_population = initial_population[:100]
+        for i in range(population_total - 100):
+            matrix = create_random_2d_array(n, m)
+            initial_population.append(Genome(matrix))
+        
+
 
       
 
